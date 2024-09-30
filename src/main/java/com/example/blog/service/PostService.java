@@ -1,59 +1,87 @@
 package com.example.blog.service;
 
+import com.example.blog.exception.ResourceNotFoundException;
 import com.example.blog.model.Post;
+import com.example.blog.model.User;
 import com.example.blog.repository.PostRepository;
+import com.example.blog.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class PostService {
 
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
 
-    public PostService(PostRepository postRepository) {
+    public PostService(PostRepository postRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
+        this.userRepository = userRepository;
     }
 
-    public Post createPost(Post post){
-        return postRepository.save(post);
-    }
-
-    public void deletePost(long id){
-        postRepository.deleteById(id);
-    }
-
-    public void updateText(long id, String newText){
-
-        Optional<Post> postOptional = postRepository.findById(id);
-
-        if(postOptional.isPresent()){
-            postOptional.get().setText(newText);
-        }else throw new IllegalArgumentException();
-    }
-
-    public Post getPostById(long id){
-        Optional<Post> postOptional = postRepository.findById(id);
-
-        if(postOptional.isPresent()){
-            return postOptional.get();
-        }else{
-            throw new IllegalArgumentException("post with this id does not exists");
+    public Post createPost(String userName, Post post){
+        boolean userExists = userRepository.existsByUserName(userName);
+        if(userExists){
+            return postRepository.save(post);
+        } else {
+            throw new ResourceNotFoundException("User does not exist");
         }
     }
 
-    public Page<Post> getAllPost(Pageable pageable){
-        return postRepository.findAll(pageable);
+    public void deletePost(String userName, long id){
+        boolean userExists = userRepository.existsByUserName(userName);
+        if(userExists){
+            boolean postExists = postRepository.existsById(id);
+            if(postExists){
+                postRepository.deleteById(id);
+            } else {
+                throw new ResourceNotFoundException("Post with ID " + id + " does not exist");
+            }
+        } else {
+            throw new ResourceNotFoundException("User does not exist");
+        }
+    }
+
+    public void updateText(String userName, long id, String newText){
+        boolean userExists = userRepository.existsByUserName(userName);
+        if(userExists){
+            Post post = postRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Post with ID " + id + " does not exist"));
+            post.setText(newText);
+            postRepository.save(post);
+        } else{
+            throw new ResourceNotFoundException("User does not exist");
+        }
+    }
+
+    public Post getPostById(String userName, long id){
+        boolean userExists = userRepository.existsByUserName(userName);
+        if(userExists){
+            return postRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Post with ID " + id + " does not exist"));
+        } else{
+            throw new ResourceNotFoundException("User does not exist");
+        }
+    }
+
+    public Page<Post> getAllPosts(String userName, Pageable pageable){
+        boolean userExists = userRepository.existsByUserName(userName);
+        if(userExists) {
+            return postRepository.findAll(pageable);
+        } else{
+            throw new ResourceNotFoundException("User does not exist");
+        }
     }
 
     public Page<Post> getUsersAllPosts(String userName, Pageable pageable){
-
-        return postRepository.findByUserName(userName, pageable);
+        boolean userExists = userRepository.existsByUserName(userName);
+        if(userExists){
+            return postRepository.findByUserName(userName, pageable);
+        } else{
+            throw new ResourceNotFoundException("User does not exist");
+        }
     }
 }

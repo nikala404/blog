@@ -13,7 +13,6 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Handle Resource Not Found Exceptions
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Object> handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
@@ -26,7 +25,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    // Handle IllegalArgumentException (if still used)
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request) {
@@ -39,7 +37,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    // Handle All Other Exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalException(
             Exception ex, WebRequest request) {

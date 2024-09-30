@@ -6,7 +6,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,21 +20,17 @@ public class User {
 
     @Column(name = "first_name")
     @NotBlank
-    @Min(value = 4, message = "Size must be shorter than 4 character")
+    @Size(min = 2, message = "First name must be at least 4 characters long")
     private String firstName;
 
     @Column(name = "last_name")
     @NotBlank
-    @Min(value = 6, message = "Size must be longer or equal 6 character")
+    @Size(min = 3, message = "Last name must be at least 3 characters long")
     private String lastName;
 
     @Column(name = "user_name", unique = true)
     @NotBlank
-    @Max(value = 24, message = "Username must be shorter or equal 24 character")
+    @Size(max = 56, message = "Username must be 56 characters or less")
     private String userName;
 
-    @Column(name = "birth_date")
-    @NotBlank
-    @Pattern(regexp = "(0[1-9]|[12][0-9]|3[01])\\/(0[1-9]|1[0,1,2])\\/(19|20)\\d{2}", message = "date format must be like this: dd-mm-yyyy")
-    private String brithDate;
 }

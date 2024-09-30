@@ -1,11 +1,13 @@
 package com.example.blog.service;
 
+import com.example.blog.exception.ResourceNotFoundException;
 import com.example.blog.client.ReqResClient;
 import com.example.blog.dto.ReqResUser;
 import com.example.blog.dto.UserResponse;
 import com.example.blog.model.User;
 import com.example.blog.repository.UserRepository;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,17 +18,14 @@ public class UserService  {
     private final  UserRepository userRepository;
     private final ReqResClient reqResClient;
 
-
-
     public UserService(UserRepository userRepository, ReqResClient reqResClient) {
         this.userRepository = userRepository;
         this.reqResClient = reqResClient;
     }
 
-
-   public void registerUser(User user){
-            userRepository.save(user);
-   }
+    public void registerUser(User user){
+        userRepository.save(user);
+    }
 
     public void fetchAndStoreUsers() {
         int page = 1;
@@ -51,4 +50,7 @@ public class UserService  {
         return user;
     }
 
+    public Page<User> getAllUsers(Pageable pageable){
+        return userRepository.findAll(pageable);
+    }
 }

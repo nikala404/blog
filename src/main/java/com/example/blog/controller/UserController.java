@@ -1,17 +1,14 @@
 package com.example.blog.controller;
 
-import com.example.blog.client.ReqResClient;
 import com.example.blog.model.User;
 import com.example.blog.service.UserService;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
@@ -20,17 +17,15 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
+    @PostMapping
     public ResponseEntity<String> createUser(@RequestBody User user){
-        try {
-            userService.registerUser(user);
-            return ResponseEntity.ok("User registered successfully");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        userService.registerUser(user);
+        return ResponseEntity.ok("User registered successfully");
     }
 
-
-
-
+    @GetMapping
+    public ResponseEntity<Page<User>> getAllUsers(Pageable pageable){
+        Page<User> users = userService.getAllUsers(pageable);
+        return ResponseEntity.ok(users);
+    }
 }

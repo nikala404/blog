@@ -1,12 +1,15 @@
 package com.example.blog.service;
 
+import com.example.blog.exception.ResourceNotFoundException;
 import com.example.blog.model.Comment;
 import com.example.blog.model.Post;
+import com.example.blog.model.User;
 import com.example.blog.repository.CommentRepository;
 import com.example.blog.repository.PostRepository;
+import com.example.blog.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -14,33 +17,57 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
-
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository) {
+    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
+        this.userRepository = userRepository;
     }
 
-    public Comment createComment(long id, Comment comment){
-        Optional<Post> postOptional = postRepository.findById(id);
-        if(postOptional.isPresent()){
+    public Comment createComment(long postId, String userName, Comment comment) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post with ID " + postId + " not found"));
 
-           return commentRepository.save(comment);
+        User user = userRepository.findUserByUserName(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User with username " + userName + " not found"));
 
-        }else
-            throw new IllegalArgumentException("post with this id does not exists");
+        comment.setPost(post);
+        comment.setWrittenBy(user);
+        return commentRepository.save(comment);
     }
-    
-    public void deleteComment (long id){
+
+    public void deleteComment(String userName, long id) {
+        boolean userExists = userRepository.existsByUserName(userName);
+        if (!userExists) {
+            throw new ResourceNotFoundException("User does not exist");
+        }
+
+        boolean commentExists = commentRepository.existsById(id);
+        if (!commentExists) {
+            throw new ResourceNotFoundException("Comment with ID " + id + " does not exist");
+        }
+
         commentRepository.deleteById(id);
     }
-    
-    public Comment updateComment(long commentarId,String newText){
-        Optional<Comment> optionalComment = commentRepository.findById(commentarId);
-        if (optionalComment.isPresent()){
-            Comment commentary = optionalComment.get();
-            commentary.setCommentarText(newText);
-            return commentary;
-        }else throw new IllegalArgumentException("comment with this id does not exists");
+
+    public Comment updateComment(String userName, long commentId, String newText) {
+        userRepository.findUserByUserName(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment with ID " + commentId + " does not exist"));
+
+        comment.setCommentarText(newText);
+        return commentRepository.save(comment);
+    }
+
+    public List<Comment> getComments(long postId) {
+        boolean postExists = postRepository.existsById(postId);
+        if (!postExists) {
+            throw new ResourceNotFoundException("Post with ID " + postId + " does not exist");
+        }
+
+        return commentRepository.findByPostId(postId);
     }
 }

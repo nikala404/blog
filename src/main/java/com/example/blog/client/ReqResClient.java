@@ -1,15 +1,16 @@
 package com.example.blog.client;
-
+import com.example.blog.dto.UserResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(
-        value = "reqresclient",
+        value = "reqResClient",
         url = "https://reqres.in/api"
 )
-public interface ReqresClient {
+public interface ReqResClient {
+
     @GetMapping("/users")
-    ResponseEntity<Object> getAllUsers();
+    UserResponse getAllUsers(@RequestParam("page") int page);
 
 }

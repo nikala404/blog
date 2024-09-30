@@ -15,10 +15,10 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JoinColumn(name = "coommentar_id")
+    @JoinColumn(name = "commentar_id")
     private long commentarId;
 
-    @Column(name = "commentar_text")
+    @Column(name = "commentar_text", nullable = false)
     private String commentarText;
 
     @ManyToOne

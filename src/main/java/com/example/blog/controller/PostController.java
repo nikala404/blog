@@ -1,11 +1,14 @@
 package com.example.blog.controller;
 
+import com.example.blog.DTO.PostUpdateRequest;
 import com.example.blog.model.Post;
 import com.example.blog.service.PostService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -20,26 +23,27 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<String> createPost(
-            @RequestParam String userName,
+            Principal principal,
             @RequestBody Post post){
-        postService.createPost(userName, post);
+        postService.createPost(principal, post);
         return ResponseEntity.ok("Post Created Successfully");
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{postId}")
     public ResponseEntity<String> deletePost(
-            @RequestParam String userName,
-            @PathVariable long id){
-        postService.deletePost(userName, id);
+            Principal principal,
+            @PathVariable long postId){
+        postService.deletePost(principal, postId);
         return ResponseEntity.ok("Post Deleted Successfully");
     }
 
-    @PatchMapping("/update-post/{id}")
+    @PatchMapping("/update-post/{postId}")
     public ResponseEntity<String> updatePost(
-            @RequestParam String userName,
-            @PathVariable long id,
-            @RequestBody String newText) {
-        postService.updateText(userName, id, newText);
+            Principal principal,
+            @PathVariable long postId,
+            @RequestBody PostUpdateRequest newText)
+    {
+        postService.updateText(principal, postId, newText.getText());
         return ResponseEntity.ok("Post Updated Successfully");
     }
 

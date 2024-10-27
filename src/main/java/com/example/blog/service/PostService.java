@@ -7,7 +7,13 @@ import com.example.blog.repository.PostRepository;
 import com.example.blog.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.security.Principal;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -17,44 +23,53 @@ public class PostService {
     private final UserRepository userRepository;
 
 
+
+
+
     public PostService(PostRepository postRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
     }
 
-    public Post createPost(String userName, Post post){
-        boolean userExists = userRepository.existsByUserName(userName);
-        if(userExists){
-            return postRepository.save(post);
-        } else {
-            throw new ResourceNotFoundException("User does not exist");
-        }
+    public Post createPost(Principal principal, Post post){
+
+           Post newPost = new Post();
+           newPost.setUserName(principal.getName());
+           newPost.setText(post.getText());
+           return postRepository.save(newPost);
     }
 
-    public void deletePost(String userName, long id){
-        boolean userExists = userRepository.existsByUserName(userName);
-        if(userExists){
-            boolean postExists = postRepository.existsById(id);
-            if(postExists){
-                postRepository.deleteById(id);
+    public void deletePost(Principal principal, long postId){
+        String userName = principal.getName();
+        User user = userRepository.findUserByUserName(userName).get();
+        Optional<Post> currentPostOptional = postRepository.findById(postId);
+
+        if(currentPostOptional.isPresent()){
+            Post currentPost = currentPostOptional.get();
+            if(currentPost.getUserName() == userName || user.getRoles().contains("ADMIN")){
+                postRepository.deleteById(postId);
             } else {
-                throw new ResourceNotFoundException("Post with ID " + id + " does not exist");
+                throw new ResourceNotFoundException("Post with ID " + postId + " does not exist, or This Post Don't Belong To You");
             }
         } else {
             throw new ResourceNotFoundException("User does not exist");
         }
     }
 
-    public void updateText(String userName, long id, String newText){
-        boolean userExists = userRepository.existsByUserName(userName);
-        if(userExists){
-            Post post = postRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Post with ID " + id + " does not exist"));
+    public void updateText(Principal principal, long postId, String newText) {
+        String userName = principal.getName();
+        User user = userRepository.findUserByUserName(userName).get();
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post with ID " + postId + " does not exist"));
+
+        if (Objects.equals(post.getUserName(), user.getUserName()) || user.getRoles().contains("ADMIN")) {
             post.setText(newText);
             postRepository.save(post);
-        } else{
-            throw new ResourceNotFoundException("User does not exist");
+        } else {
+            throw new IllegalArgumentException("You cant update others post");
         }
+
     }
 
     public Post getPostById(String userName, long id){

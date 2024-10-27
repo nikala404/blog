@@ -1,11 +1,13 @@
 package com.example.blog.controller;
 
+import com.example.blog.DTO.CommentUpdateRequest;
 import com.example.blog.model.Comment;
 import com.example.blog.service.CommentService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,26 +23,26 @@ public class CommentController {
     @PostMapping("/post/{postId}")
     public ResponseEntity<Comment> createComment(
             @PathVariable long postId,
-            @RequestParam String userName,
+            Principal principal,
             @RequestBody Comment comment) {
-        Comment savedComment = commentService.createComment(postId, userName, comment);
+        Comment savedComment = commentService.createComment(postId, principal, comment);
         return ResponseEntity.ok(savedComment);
     }
 
     @PatchMapping("/{commentId}")
-    public ResponseEntity<Comment> updateComment(
-            @RequestParam String userName,
+    public ResponseEntity<String> updateComment(
+            Principal principal,
             @PathVariable long commentId,
-            @RequestBody String newText) {
-        Comment updatedComment = commentService.updateComment(userName, commentId, newText);
+            @RequestBody CommentUpdateRequest newText) {
+        String updatedComment = commentService.updateComment(principal, commentId, newText.getNewText());
         return ResponseEntity.ok(updatedComment);
     }
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
-            @RequestParam String userName,
+            Principal principal,
             @PathVariable long commentId) {
-        commentService.deleteComment(userName, commentId);
+        commentService.deleteComment(principal, commentId);
         return ResponseEntity.ok().build();
     }
 
